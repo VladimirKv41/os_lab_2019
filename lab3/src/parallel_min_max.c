@@ -42,16 +42,19 @@ int main(int argc, char **argv) {
             seed = atoi(optarg);
             // your code here
             // error handling
+            printf ("option seed with arg %d", seed);
             break;
           case 1:
             array_size = atoi(optarg);
             // your code here
             // error handling
+            printf ("option array_size with arg %d", array_size);
             break;
           case 2:
             pnum = atoi(optarg);
             // your code here
             // error handling
+            printf ("option pnum with arg %d", pnum);
             break;
           case 3:
             with_files = true;
