@@ -35,23 +35,26 @@ int main(int argc, char **argv) {
 
     if (c == -1) break;
 
-    switch (c) {
+      switch (c) {
       case 0:
         switch (option_index) {
           case 0:
             seed = atoi(optarg);
             // your code here
             // error handling
+            printf ("option seed with arg %d", seed);
             break;
           case 1:
             array_size = atoi(optarg);
             // your code here
             // error handling
+            printf ("option array_size with arg %d", array_size);
             break;
           case 2:
             pnum = atoi(optarg);
             // your code here
             // error handling
+            printf ("option pnum with arg %d", pnum);
             break;
           case 3:
             with_files = true;
@@ -90,21 +93,34 @@ int main(int argc, char **argv) {
 
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
-
-  for (int i = 0; i < pnum; i++) {
+  int i;
+  for (i = 0; i < pnum; i++) {
     pid_t child_pid = fork();
     if (child_pid >= 0) {
       // successful fork
       active_child_processes += 1;
       if (child_pid == 0) {
-        // child process
+
+        int array_part=array_size/pnum;
+        struct MinMax part_min_max;
+        if(i+1!=pnum) {
+            part_min_max = GetMinMax(array, i*array_part, (i+1)*array_part);}
+        else {
+            part_min_max = GetMinMax(array, i*array_part, (i+1)*array_part+(array_size%pnum));}
 
         // parallel somehow
-
         if (with_files) {
           // use files here
+          FILE *fp;
+          fp=fopen("text.txt", "w");
+          fprintf(fp, "%d%d\n",part_min_max.min,part_min_max.min);
+          fclose(fp);
+
         } else {
           // use pipe here
+          int p[2];
+          pipe(p);
+          write(p[1], &part_min_max, 3);
         }
         return 0;
       }
@@ -117,7 +133,8 @@ int main(int argc, char **argv) {
 
   while (active_child_processes > 0) {
     // your code here
-
+    int status;
+    wait(&status);
     active_child_processes -= 1;
   }
 
@@ -125,7 +142,7 @@ int main(int argc, char **argv) {
   min_max.min = INT_MAX;
   min_max.max = INT_MIN;
 
-  for (int i = 0; i < pnum; i++) {
+  for (i = 0; i < pnum; i++) {
     int min = INT_MAX;
     int max = INT_MIN;
 
