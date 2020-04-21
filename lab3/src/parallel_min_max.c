@@ -16,9 +16,12 @@
 #include "utils.h"
 
 int main(int argc, char **argv) {
-  int seed = -1;
+  /*int seed = -1;
   int array_size = -1;
-  int pnum = -1;
+  int pnum = -2;*/
+  int seed = 13;
+  int array_size = 10;
+  int pnum = 2;
   bool with_files = false;
 
   while (true) {
@@ -29,12 +32,21 @@ int main(int argc, char **argv) {
                                       {"pnum", required_argument, 0, 0},
                                       {"by_files", no_argument, 0, 'f'},
                                       {0, 0, 0, 0}};
-
+    /*printf("%d\n",seed);
+    printf("%d\n",array_size);
+    printf("%d\n",pnum);  
+    seed=atoi(argv[1]);  
+    array_size=atoi(argv[2]);
+    pnum=atoi(argv[3]);
+    printf("%d\n",seed);
+    printf("%d\n",array_size);
+    printf("%d\n",pnum); */                           
     int option_index = 0;
     int c = getopt_long(argc, argv, "f", options, &option_index);
-
+    //int c = getopt_long(argc, argv, "f:012", options, &option_index);
+    //c=0;
+    //option_index=3;
     if (c == -1) break;
-
       switch (c) {
       case 0:
         switch (option_index) {
@@ -74,8 +86,11 @@ int main(int argc, char **argv) {
       default:
         printf("getopt returned character code 0%o?\n", c);
     }
+    break;
   }
-
+  //printf("%d\n",optind);
+  //printf("%d\n",argc);
+  //optind=5;
   if (optind < argc) {
     printf("Has at least one no option argument\n");
     return 1;
@@ -94,33 +109,37 @@ int main(int argc, char **argv) {
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
   int i;
+  FILE *fp;
+  int p[2];
+  pipe(p);
   for (i = 0; i < pnum; i++) {
     pid_t child_pid = fork();
     if (child_pid >= 0) {
       // successful fork
       active_child_processes += 1;
       if (child_pid == 0) {
-
         int array_part=array_size/pnum;
         struct MinMax part_min_max;
         if(i+1!=pnum) {
             part_min_max = GetMinMax(array, i*array_part, (i+1)*array_part);}
         else {
             part_min_max = GetMinMax(array, i*array_part, (i+1)*array_part+(array_size%pnum));}
-
+        //printf("%d\n",part_min_max.min);
+        //printf("%d\n",part_min_max.max);
         // parallel somehow
-        if (with_files) {
+        if (with_files) 
+        {
           // use files here
-          FILE *fp;
-          fp=fopen("text.txt", "w");
-          fprintf(fp, "%d%d\n",part_min_max.min,part_min_max.min);
+          fp=fopen("text.txt", "a+");
+          fprintf(fp, "%d\n",part_min_max.min);
+          fprintf(fp, "%d\n",part_min_max.max);
           fclose(fp);
 
-        } else {
+        } else 
+        {
           // use pipe here
-          int p[2];
-          pipe(p);
-          write(p[1], &part_min_max, 3);
+          write(p[1], &part_min_max.min, sizeof(int));
+          write(p[1], &part_min_max.max, sizeof(int));
         }
         return 0;
       }
@@ -148,8 +167,17 @@ int main(int argc, char **argv) {
 
     if (with_files) {
       // read from files
+       fp=fopen("text.txt", "r");
+       fscanf(fp, "%d%d\n",&min,&max);
+       //printf("%d,",min);
+       //printf("%d,",max);
+       fclose(fp);
     } else {
       // read from pipes
+      read(p[0], &min, sizeof(int));
+      read(p[0], &max, sizeof(int));
+      //printf("%d,",min);
+      //printf("%d,",max);
     }
 
     if (min < min_max.min) min_max.min = min;
@@ -163,7 +191,6 @@ int main(int argc, char **argv) {
   elapsed_time += (finish_time.tv_usec - start_time.tv_usec) / 1000.0;
 
   free(array);
-
   printf("Min: %d\n", min_max.min);
   printf("Max: %d\n", min_max.max);
   printf("Elapsed time: %fms\n", elapsed_time);
