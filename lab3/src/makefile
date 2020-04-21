@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-I.
 
-all: sequential_min_max parallel_min_max
+all: sequential_min_max parallel_min_max seq_exec
 
 seq_exec: sequential_min_max
 	$(CC) -o seq_exec seq_exec.c $(CFLAGS)
