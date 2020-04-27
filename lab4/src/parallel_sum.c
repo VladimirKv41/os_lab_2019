@@ -4,6 +4,9 @@
 
 #include <pthread.h>
 
+
+#include "utils.h"
+
 struct SumArgs {
   int *array;
   int begin;
@@ -41,6 +44,8 @@ int main(int argc, char **argv) {
    */
 
   int *array = malloc(sizeof(int) * array_size);
+  GenerateArray(array, array_size, seed);
+
 
   struct SumArgs args[threads_num];
   for (uint32_t i = 0; i < threads_num; i++) {
