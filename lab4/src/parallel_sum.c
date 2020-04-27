@@ -14,8 +14,14 @@ struct SumArgs {
 };
 
 int Sum(const struct SumArgs *args) {
-  int sum = 0;
+  int i,sum = 0;
   // TODO: your code here 
+  for (i = 0; i < sizeof(args); i++){
+      if(i+1!=sizeof(args)) {
+            sum = GetMinMax(array, i*array_part, (i+1)*array_part);}
+        else {
+            sum = GetMinMax(array, i*array_part, (i+1)*array_part+(array_size%pnum));}
+  }
   return sum;
 }
 
@@ -48,7 +54,8 @@ int main(int argc, char **argv) {
 
 
   struct SumArgs args[threads_num];
-  for (uint32_t i = 0; i < threads_num; i++) {
+  uint32_t i;
+  for (i = 0; i < threads_num; i++) {
     if (pthread_create(&threads[i], NULL, ThreadSum, (void *)&args)) {
       printf("Error: pthread_create failed!\n");
       return 1;
@@ -56,7 +63,7 @@ int main(int argc, char **argv) {
   }
 
   int total_sum = 0;
-  for (uint32_t i = 0; i < threads_num; i++) {
+  for (i = 0; i < threads_num; i++) {
     int sum = 0;
     pthread_join(threads[i], (void **)&sum);
     total_sum += sum;
