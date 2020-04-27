@@ -16,12 +16,12 @@
 
 #include "find_min_max.h"
 #include "utils.h"
-int kid_pid = 0;
+
 void kill_c(int pid) {
-  kill(kid_pid, SIGKILL);
+  kill(getppid(), SIGKILL);
 }
 int main(int argc, char **argv) {
-  pid_t child_pid;
+  
   /*int seed = -1;
   int array_size = -1;
   int pnum = -2;*/
@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
 
   pipe(p);
   for (i = 0; i < pnum; i++) {
-   child_pid = fork();
+   pid_t child_pid = fork();
     if (child_pid >= 0) {
       // successful fork
       active_child_processes += 1;
@@ -162,10 +162,9 @@ int main(int argc, char **argv) {
  
   if(timeout!=0){
         signal(SIGALRM, kill_c);
-        kid_pid = child_pid;
         alarm(timeout);
         int status;
-        waitpid(child_pid,&status , WNOHANG);
+        waitpid(getppid(),&status , WNOHANG);
   }
   while (active_child_processes > 0) {
     int status;
